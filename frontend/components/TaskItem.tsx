@@ -30,19 +30,20 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onEdit, onDelete, onTo
   const isDone = task.status === TaskStatus.DONE;
 
   return (
-    <div className={`group bg-white rounded-xl border p-4 transition-all duration-200 hover:shadow-md ${isDone ? 'border-slate-100 opacity-75' : 'border-slate-200'}`}>
+    <div className={`group bg-white rounded-xl border p-4 transition-all duration-200 hover:shadow-md cursor-pointer ${isDone ? 'border-slate-100 opacity-75' : 'border-slate-200'}`} onClick={() => onToggleStatus(task)}>
       <div className="flex items-start gap-4">
         
         {/* Toggle Button */}
         <button 
-          onClick={() => onToggleStatus(task)}
+          onClick={(e) => { e.stopPropagation(); onToggleStatus(task); }}
           className={`mt-1 flex-shrink-0 transition-colors ${isDone ? 'text-green-500' : 'text-slate-300 hover:text-blue-500'}`}
+          title="Toggle task status"
         >
           {isDone ? <CheckCircleIcon filled className="w-6 h-6" /> : <CircleIcon className="w-6 h-6" />}
         </button>
 
         {/* Content */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between gap-2 mb-1">
             <h3 className={`font-semibold text-lg truncate ${isDone ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
               {task.title}
@@ -74,16 +75,17 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task, onEdit, onDelete, onTo
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
               <button 
-                onClick={() => onEdit(task)}
+                onClick={(e) => { e.stopPropagation(); onEdit(task); }}
                 className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                 title="Edit"
               >
                 <EditIcon className="w-4 h-4" />
               </button>
               <button 
-                onClick={() => {
+                onClick={(e) => { 
+                  e.stopPropagation();
                   if (window.confirm('Are you sure you want to delete this task?')) {
                     onDelete(task.id);
                   }

@@ -11,6 +11,7 @@ import { FilterToolbar } from './components/FilterToolbar';
 import { PlusIcon } from './components/Icons';
 import { ProfilePage } from './pages/ProfilePage';
 import { TaskDetails } from './pages/TaskDetails';
+import { Dashboard } from './pages/Dashboard';
 import { NavBar } from './components/NavBar';
 
 function App() {
@@ -198,23 +199,19 @@ function App() {
   // Main app
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-20">
-      <NavBar currentPath={route} onNavigate={navigate} onBack={() => window.history.back()} user={user} onLogout={logout} onCreateTask={openCreateModal} />
+      <NavBar currentPath={route} onNavigate={navigate} user={user} onLogout={logout} onCreateTask={openCreateModal} />
       {/* Main Content */}
       {route === '/profile' ? (
         <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
           <ProfilePage onBack={() => navigate('/tasks')} />
         </main>
-      ) : route === '/settings' ? (
-        <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-          {/* Settings page */}
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">Settings</h2>
-            <p className="text-sm text-slate-600">Todo: theme, preferences, defaults.</p>
-          </div>
-        </main>
       ) : route.startsWith('/tasks/') ? (
         <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
           <TaskDetails id={route.replace('/tasks/', '')} onBack={() => navigate('/tasks')} onEdit={(t: Task) => { setEditingTask(t); setIsModalOpen(true); navigate('/tasks'); }} />
+        </main>
+      ) : route === '/' ? (
+        <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+          <Dashboard tasks={tasks} onCreateTask={handleCreate} isLoading={loading} />
         </main>
       ) : (
         <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">

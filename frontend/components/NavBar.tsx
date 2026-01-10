@@ -3,13 +3,12 @@ import React, { useState, useRef, useEffect } from 'react';
 interface NavBarProps {
   currentPath: string;
   onNavigate: (path: string) => void;
-  onBack: () => void;
   user?: { id: string; username?: string } | null;
   onLogout?: () => void;
   onCreateTask?: () => void;
 }
 
-export const NavBar: React.FC<NavBarProps> = ({ currentPath, onNavigate, onBack, user, onLogout, onCreateTask }) => {
+export const NavBar: React.FC<NavBarProps> = ({ currentPath, onNavigate, user, onLogout, onCreateTask }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -50,13 +49,6 @@ export const NavBar: React.FC<NavBarProps> = ({ currentPath, onNavigate, onBack,
             >
               Tasks
             </button>
-            <button
-              onClick={() => onNavigate('/settings')}
-              className={`px-3 py-1 rounded ${currentPath === '/settings' ? 'bg-slate-100' : 'hover:bg-slate-50'}`}
-            >
-              Settings
-            </button>
-            <button onClick={onBack} className="px-3 py-1 rounded hover:bg-slate-50">Back</button>
           </nav>
 
           <div className="relative" ref={ref}>
