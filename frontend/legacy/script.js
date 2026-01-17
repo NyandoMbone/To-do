@@ -3,14 +3,14 @@
 console.log('legacy script deprecated');
 const API_URL = "http://localhost:5000/api";
 
-/* =========================
+/* 
    HELPERS
-========================= */
+ */
 const getToken = () => localStorage.getItem("token");
 
-/* =========================
+/*
    PAGE LOAD LOGIC
-========================= */
+*/
 document.addEventListener("DOMContentLoaded", () => {
     const token = getToken();
 
@@ -24,9 +24,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-/* =========================
-   LOGIN
-========================= */
+/* 
+   LOGIN */
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
