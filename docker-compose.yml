@@ -1,17 +1,16 @@
 version: '3.8'
 services:
   db:
-    image: mysql:8.0
+    image: postgres:15-alpine
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-todo_app}
-      MYSQL_USER: ${MYSQL_USER:-todo}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-todopass}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-todo_app}
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/postgresql/data
 
   backend:
     build:
@@ -20,9 +19,10 @@ services:
     environment:
       PORT: 5000
       DB_HOST: db
-      DB_USER: ${MYSQL_USER:-todo}
-      DB_PASSWORD: ${MYSQL_PASSWORD:-todopass}
-      DB_NAME: ${MYSQL_DATABASE:-todo_app}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME: ${DB_NAME:-todo_app}
+      DB_PORT: 5432
       JWT_SECRET: ${JWT_SECRET:-change_me}
     ports:
       - "5000:5000"
