@@ -1,95 +1,66 @@
-import { Task, TaskStatus, TaskPriority, CreateTaskDTO, UpdateTaskDTO } from '../types';
+import { Task, CreateTaskDTO, UpdateTaskDTO } from '../types';
 
-const STORAGE_KEY = 'task_manager_data';
-const SIMULATED_DELAY_MS = 600; // Simulate network latency
+/**
+ * Dynamic API Base URL Configuration
+ * 
+ * In production:
+ * - Uses window.location.origin/api (relative URLs) - works for same-domain deployment
+ * - OR uses VITE_API_URL environment variable for cross-domain API
+ * 
+ * In development:
+ * - Uses /api which proxies to http://localhost:5000 via vite config
+ */
+const API_BASE = (() => {
+  // First check if API URL is set as environment variable (from Vite build)
+  const envApiUrl = (window as any).import?.meta?.env?.VITE_API_URL;
+  if (envApiUrl) {
+    return `${envApiUrl}/api/tasks`;
+  }
+  
+  // Use relative path (works when frontend & backend served from same domain)
+  return '/api/tasks';
+})();
 
-// Initial dummy data to populate the app if empty
-const INITIAL_DATA: Task[] = [
-  {
-    id: '1',
-    title: 'Review Frontend Architecture',
-    description: 'Check the component structure and ensure separation of concerns.',
-    status: TaskStatus.IN_PROGRESS,
-    priority: TaskPriority.HIGH,
-    dueDate: new Date(Date.now() + 86400000 * 2).toISOString(), // 2 days from now
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    title: 'Buy Groceries',
-    description: 'Milk, Eggs, Bread, and Coffee.',
-    status: TaskStatus.TODO,
-    priority: TaskPriority.LOW,
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    id: '3',
-    title: 'Deploy to Production',
-    description: 'Run the build pipeline and verify functionality.',
-    status: TaskStatus.DONE,
-    priority: TaskPriority.HIGH,
-    dueDate: new Date(Date.now() - 3600000).toISOString(),
-    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-  },
-];
-
-// Helper to simulate async delay
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// Helper to get from local storage
-const getStoredTasks = (): Task[] => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : INITIAL_DATA;
-};
-
-// Helper to save to local storage
-const saveStoredTasks = (tasks: Task[]) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-};
+async function handleResponse(res: Response) {
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `API error ${res.status}`);
+  }
+  return res.status === 204 ? null : res.json();
+}
 
 export const taskService = {
-  // GET /tasks
+  // GET /api/tasks
   getTasks: async (): Promise<Task[]> => {
-    await delay(SIMULATED_DELAY_MS);
-    return getStoredTasks();
+    const res = await fetch(API_BASE);
+    return handleResponse(res);
   },
 
-  // POST /tasks
+  // POST /api/tasks
   createTask: async (data: CreateTaskDTO): Promise<Task> => {
-    await delay(SIMULATED_DELAY_MS);
-    const tasks = getStoredTasks();
-    
-    const newTask: Task = {
-      ...data,
-      id: Math.random().toString(36).substring(2, 9),
-      createdAt: new Date().toISOString(),
-    };
-
-    const updatedTasks = [newTask, ...tasks];
-    saveStoredTasks(updatedTasks);
-    return newTask;
+    const res = await fetch(API_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return handleResponse(res);
   },
 
-  // PUT /tasks/:id
+  // PUT /api/tasks/:id
   updateTask: async (id: string, updates: UpdateTaskDTO): Promise<Task> => {
-    await delay(SIMULATED_DELAY_MS);
-    const tasks = getStoredTasks();
-    const index = tasks.findIndex((t) => t.id === id);
-    
-    if (index === -1) throw new Error('Task not found');
-
-    const updatedTask = { ...tasks[index], ...updates };
-    tasks[index] = updatedTask;
-    
-    saveStoredTasks(tasks);
-    return updatedTask;
+    const res = await fetch(`${API_BASE}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    return handleResponse(res);
   },
 
-  // DELETE /tasks/:id
+  // DELETE /api/tasks/:id
   deleteTask: async (id: string): Promise<void> => {
-    await delay(SIMULATED_DELAY_MS);
-    const tasks = getStoredTasks();
-    const filteredTasks = tasks.filter((t) => t.id !== id);
-    saveStoredTasks(filteredTasks);
+    const res = await fetch(`${API_BASE}/${id}`, {
+      method: 'DELETE',
+    });
+    return handleResponse(res);
   },
 };

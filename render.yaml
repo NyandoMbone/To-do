@@ -1,0 +1,110 @@
+services:
+  # ==================================
+  # MySQL Database Service
+  # ==================================
+  - type: pserv
+    name: todo-mysql
+    runtime: mysql
+    plan: free # Use free tier for academics, upgrade for production
+    # Render will automatically set DATABASE_URL environment variable
+    # with the connection string for your backend service
+
+  # ==================================
+  # Backend Service (Node.js/Express)
+  # ==================================
+  - type: web
+    name: todo-backend
+    runtime: node
+    plan: free # Use free tier for academics
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        scope: run
+        # Generated randomly by Render during first deploy
+        # You should manually set this to a strong value in the Render dashboard
+      - key: FRONTEND_URL
+        scope: run
+        # Set this to your frontend Render URL (see frontend service below)
+        # Example: https://todo-app-frontend.onrender.com
+      - fromDatabase:
+          name: todo-mysql
+          property: connectionString
+          envVarKey: DATABASE_URL
+          # This automatically connects to the MySQL service above
+    routes:
+      - type: http
+        path: /api
+    # Configure auto-deploy from GitHub
+    # github:
+    #   repo: your-github-username/your-repo-name
+    #   branch: main
+    #   deployOnPush: true
+
+  # ==================================
+  # Frontend Service (React + Nginx)
+  # ==================================
+  - type: web
+    name: todo-frontend
+    runtime: docker
+    plan: free # Use free tier for academics
+    buildCommand: npm run build
+    # Note: Render will run this in the frontend directory automatically
+    # The Dockerfile handles the multi-stage build
+    envVars:
+      - key: VITE_API_URL
+        scope: build
+        # Set this dynamically at build time
+        # Render will provide this value
+        # Example: https://todo-app-backend.onrender.com
+    routes:
+      - type: http
+        path: /
+        source: /
+    # Configure auto-deploy from GitHub
+    # github:
+    #   repo: your-github-username/your-repo-name
+    #   branch: main
+    #   deployOnPush: true
+
+  # ==================================
+  # MySQL Connection Pool Service (Optional)
+  # ==================================
+  # For production, consider adding a connection pooler like PgBouncer
+  # But Render's MySQL handles this automatically for free tier
+
+# ==================================
+# Deployment Instructions
+# ==================================
+# 1. Push this file to your GitHub repository root directory
+#
+# 2. In Render Dashboard (https://dashboard.render.com):
+#    a. Click "New" → "Blueprint"
+#    b. Connect your GitHub repo
+#    c. Select this render.yaml file
+#    d. Click "Create New Services from Blueprint"
+#
+# 3. Set Environment Variables in Render Dashboard:
+#    - todo-backend service:
+#      * JWT_SECRET: Set to a random, strong secret
+#      * FRONTEND_URL: Set to your frontend Render URL
+#      * DATABASE_URL: Automatically set by MySQL service
+#
+#    - todo-frontend service:
+#      * VITE_API_URL: Set to your backend Render URL
+#
+# 4. Services will auto-deploy when you:
+#    - Push to main branch (if deployOnPush: true)
+#    - Click "Deploy" in Render Dashboard
+#
+# 5. First deployment may take 10-15 minutes
+#    - MySQL service initializes
+#    - Backend builds and connects to DB
+#    - Frontend builds and deploys
+#
+# 6. Once all services are "Live":
+#    - Frontend URL: https://<your-frontend-name>.onrender.com
+#    - Backend URL: https://<your-backend-name>.onrender.com
+#    - API URLs: https://<your-backend-name>.onrender.com/api/***

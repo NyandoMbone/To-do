@@ -16,6 +16,9 @@ lerna-debug.log*
 .env.local
 .env.*.local
 .env.production.local
+.env.development.local
+backend/.env
+frontend/.env.local
 
 # IDE
 .vscode/
@@ -44,3 +47,10 @@ temp/
 # OS specific
 Thumbs.db
 .DS_Store
+
+# Database
+database.db
+*.db
+
+# Render deployment (optional - use for local testing only)
+.render

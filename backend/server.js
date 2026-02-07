@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
@@ -8,8 +9,19 @@ const db = require('./config/database');
 
 const app = express();
 
-// ✅ FIX: Simple CORS configuration
-app.use(cors());
+// ✅ CORS configuration - Allow requests from deployed frontend
+const allowedOrigins = [
+  'http://localhost:5173',      // Local development
+  'http://localhost',           // Local docker
+  process.env.FRONTEND_URL,     // Deployed frontend URL (e.g., from Render)
+].filter(Boolean);
+
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? allowedOrigins 
+    : '*',
+  credentials: true,
+}));
 
 // Middleware
 app.use(express.json());
@@ -25,12 +37,25 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 
+// Serve frontend build if present (allows running frontend from backend on port 5000)
+const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+app.use(express.static(frontendDist));
+// If the request doesn't match /api/* and a static file isn't found, send index.html
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/health')) return next();
+  res.sendFile(path.join(frontendDist, 'index.html'), (err) => {
+    if (err) next();
+  });
+});
+
 // ✅ Health check endpoint
 app.get("/health", (req, res) => {
   res.json({ 
     status: "OK", 
     message: "Todo App Backend is running",
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    database: process.env.DATABASE_URL ? 'Render MySQL' : 'Local/Docker',
   });
 });
 

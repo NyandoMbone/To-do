@@ -1,7 +1,26 @@
 import { useAuth } from '../context/AuthContext';
 import { Task, CreateTaskDTO, UpdateTaskDTO } from '../types';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+/**
+ * Dynamic API Base URL Configuration
+ * 
+ * In development:
+ * - Uses relative /api (proxied by vite to localhost:5000)
+ * 
+ * In production:
+ * - Uses VITE_API_URL environment variable for cross-domain API
+ */
+const getApiBase = () => {
+  // Check for environment variable (set during Vite build)
+  const envApiUrl = (import.meta as any)?.env?.VITE_API_URL;
+  if (envApiUrl) {
+    return envApiUrl;
+  }
+  // Fall back to relative path (works when frontend & backend served from same domain)
+  return '/api';
+};
+
+const API_BASE_URL = getApiBase();
 
 export const useTaskService = () => {
   const { token } = useAuth();

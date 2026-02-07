@@ -1,5 +1,22 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+/**
+ * Dynamic API Base URL Configuration
+ * - In development: uses relative /api (proxied by vite to localhost:5000)
+ * - In production: uses VITE_API_URL env var or defaults to relative /api
+ */
+const getApiBase = () => {
+  // Check for environment variable (set during Vite build)
+  const envUrl = (import.meta as any)?.env?.VITE_API_URL;
+  if (envUrl) {
+    return envUrl;
+  }
+  // Fall back to relative path (works for same-domain deployment)
+  return '/api';
+};
+
+const API_BASE = getApiBase();
+
 export interface AuthUser {
   id: string;
   username: string;
@@ -43,7 +60,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -73,7 +90,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -107,7 +124,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const changePassword = async (currentPassword: string, newPassword: string) => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/auth/change-password', {
+      const response = await fetch(`${API_BASE}/auth/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,12 +1,26 @@
 const mysql = require('mysql2');
 
-const db = mysql.createConnection({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '1Lambinfor.',
-  database: process.env.DB_NAME || 'todo_app',
-  multipleStatements: true,
-});
+/**
+ * Database Connection Configuration
+ * Supports both local docker-compose and cloud deployments (Render)
+ */
+let db;
+
+// Check if using Render's MySQL service (DATABASE_URL provided)
+if (process.env.DATABASE_URL) {
+  // Parse Render's MySQL connection URL format
+  // mysql://user:password@host:port/database
+  db = mysql.createConnection(process.env.DATABASE_URL);
+} else {
+  // Local/Docker development configuration
+  db = mysql.createConnection({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || 'root',
+    database: process.env.DB_NAME || 'todo_app',
+    multipleStatements: true,
+  });
+}
 
 /**
  * Initialize database connection and create tables
